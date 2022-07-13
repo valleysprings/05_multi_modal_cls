@@ -72,7 +72,7 @@ python modeling/fine-tuning/finetuning.py
 │          error_analysis.py #错误分析
 │
 ├─runs # tensorboard暂存训练数据日志文件(自动生成)
-|
+│
 └─saved #暂存区
     ├─saved_feats #特征暂存
     └─saved_models #模型暂存
