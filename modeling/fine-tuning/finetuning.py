@@ -275,7 +275,7 @@ if __name__ == '__main__':
     parser.add_argument('--vtype', type=str, default='resnet', help='resnet')
     parser.add_argument('--ttype', type=str, default='roberta', help='roberta')
     parser.add_argument('--bs', type=int, default=64, help='32, 64, 128')
-    parser.add_argument('--lr', type=float, default='2e-5', help='1e-4, 5e-5, 2e-5')
+    parser.add_argument('--lr', type=float, default='1e-4', help='1e-4, 5e-5, 2e-5')
     parser.add_argument('--ep', type=int, default=50, help='10, 25, 50, 100')
     parser.add_argument('--D', type=int, default=256, help='128, 256')
     parser.add_argument('--ablation', type=int, default=0, help='1: no image, 2: no text')

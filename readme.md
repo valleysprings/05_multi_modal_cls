@@ -53,26 +53,29 @@ python modeling/fine-tuning/finetuning.py
 
 ```bash
 05_multi_modal_cls
-├─data											#把实验数据集放进去
+├─data #把实验数据集放进去
 │ 
-├─feats											#特征提取
-│      clip_extract_feats.py					#处理clip特征				
-│      resnet_extract_feats.py					#处理resnet特征
-│      roberta_extract_feats.py					#处理roberta特征
+├─feats #特征提取
+│      clip_extract_feats.py #处理clip特征				
+│      resnet_extract_feats.py #处理resnet特征
+│      roberta_extract_feats.py #处理roberta特征
 │
-├─modeling										#训练与预测
-│  ├─fine-tuning								#调优特征
-│  │      finetuning.py							#调优部分
-│  │      model_fine_tuning.py					#模型定义
+├─modeling #训练与预测
+│  ├─fine-tuning #模型调优
+│  │      finetuning.py #主逻辑
+│  │      model_fine_tuning.py #模型定义
 │  │
-│  └─linear-probe										#静态特征
-│          inference_head.py					#推理部分
-│          model_head.py						#模型定义
-│          train_head.py						#训练部分
+│  └─linear-probe #线性探测
+│          inference_head.py #推理部分
+│          model_head.py #模型定义
+│          train_head.py #训练部分
+│          error_analysis.py #错误分析
 │
-└─saved											#暂存区
-    ├─saved_feats								#特征暂存
-    └─saved_models								#模型暂存
+├─runs # tensorboard暂存训练数据日志文件(自动生成)
+|
+└─saved #暂存区
+    ├─saved_feats #特征暂存
+    └─saved_models #模型暂存
 ```
 
 ## 效果
@@ -81,9 +84,9 @@ python modeling/fine-tuning/finetuning.py
 
 使用如下三种模型进行验证：
 
-1.  clip：ViT-B/32、ViT-L/14
-2.  roberta：roberta-base
-3.  resnet：resnet50
+1. clip：ViT-B/32、ViT-B/16、ViT-L/14
+2. roberta：roberta-base
+3. resnet：resnet50
 
 fine-tuning的batch size设置为64，训练分类头batch size设置为512。
 
@@ -98,7 +101,7 @@ fine-tuning的batch size设置为64，训练分类头batch size设置为512。
 | resnet50    | roberta     | 否                       | 256                 | 2e-5     | 0.688            |
 | resnet50    | roberta     | 否                       | 256                 | 1e-4     | 0.718            |
 | resnet50    | roberta     | 是                       | 256                 | 2e-5     | 0.723            |
-| resnet50    | roberta     | 是                       | 256                 | 1e-4     |                  |
+| resnet50    | roberta     | 是                       | 256                 | 1e-4     | 0.728            |
 
 使用ViT-L/14进一步进行测试，超参数沿用之前实验：
 
@@ -109,7 +112,7 @@ fine-tuning的batch size设置为64，训练分类头batch size设置为512。
 | 256                 | 2e-5     | 0.767            |
 | 256                 | 1e-4     | 0.777            |
 
-发现效果更差了？可能是这种融合方式没有特别好利用CLIP所标的的信息。
+发现效果更差了？可能是因为数据量不够支撑ViT-L/14。
 
 我想看一下批量大小对训练的影响，批量大小可能太大了（512），降至32重新测试。
 
@@ -122,20 +125,7 @@ fine-tuning的batch size设置为64，训练分类头batch size设置为512。
 
 好像训练起来效果好了一点，但这个提升真的有点微不足道（尤其是使用了fp16且验证集大小只有400张图像时，其实验证集波动挺大的）。
 
-### 消融测试
-
-学习率使用之前测试最好的学习率，超参设置与前一节保持一致。
-
-| 视觉encoder | 文本encoder | encoder是否进行fine-tune | 验证集准确率 |
-| ----------- | ----------- | ------------------------ | ------------ |
-| clip        | -           | 否                       | 0.762        |
-| -           | clip        | 否                       | 0.767        |
-| resnet50    | -           | 否                       | 0.693        |
-| -           | roberta     | 否                       | 0.708*       |
-| resnet50    | -           | 是                       | 0.738        |
-| -           | roberta     | 是                       | 0.675*       |
-
-*：模型有可能无法收敛。
+最后根据之前的实验结果以及分析，选择bs=4096，ViT-B/16，lr=1e4，ep=50进行训练，汇报最好验证准确率为0.790。使用此模型进行最后的推理。
 
 
 

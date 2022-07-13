@@ -64,12 +64,12 @@ def train(hyper_dict, tr_loader, vl_loader, save_path = "saved/saved_models/"):
 
     # 模型定义
     if hyper_dict.vtype == "clip":
-        vdim = 768
+        vdim = 512
     elif hyper_dict.vtype == "resnet":
         vdim = 1000
 
     if hyper_dict.ttype == "clip":
-        tdim = 768
+        tdim = 512
     elif hyper_dict.ttype == "roberta":
         tdim = 768
 
@@ -174,10 +174,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="training phase")
     parser.add_argument('--vtype', type=str, default='clip', help='resnet | clip')
     parser.add_argument('--ttype', type=str, default='clip', help='roberta | clip')
-    parser.add_argument('--bs', type=int, default=32, help='32, 128, 512')
-    parser.add_argument('--lr', type=float, default='2e-5', help='1e-4, 5e-5, 2e-5')
-    parser.add_argument('--ep', type=int, default=100, help='50, 100')
-    parser.add_argument('--D', type=int, default=128, help='128, 256')
+    parser.add_argument('--bs', type=int, default=4096, help='32, 128, 512')
+    parser.add_argument('--lr', type=float, default='1e-4', help='1e-4, 5e-5, 2e-5')
+    parser.add_argument('--ep', type=int, default=50, help='50, 100')
+    parser.add_argument('--D', type=int, default=256, help='128, 256')
     parser.add_argument('--ablation', type=int, default=0, help='1: no image, 2: no text')
     args = parser.parse_args()
 

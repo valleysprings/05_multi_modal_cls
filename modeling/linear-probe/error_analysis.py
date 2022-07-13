@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from model_head import *
+from modeling import *
 
 # 检测是否使用nvidia的GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -65,8 +66,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # 读取数据集与特征信息
-    feats_text = json.load(open('saved/saved_feats/%s_test.json' % args.ttype, 'r'))
-    feats_img = json.load(open('saved/saved_feats/%s_test.json' % args.vtype, 'r'))
+    feats_text = json.load(open('saved/saved_feats/%s_train.json' % args.ttype, 'r'))
+    feats_img = json.load(open('saved/saved_feats/%s_train.json' % args.vtype, 'r'))
 
     if args.ttype == 'clip':
         feats_text = feats_text['txt_feats']
@@ -88,7 +89,39 @@ if __name__ == '__main__':
     # print(res)
 
     # 给出答案
-    df = pd.read_csv("data/test_without_label.txt")
-    df["tag"] = res
-    df["tag"] = df["tag"].map(mapfunc)
-    df.to_csv("data/answer.csv", index=False)
+    df = pd.read_csv("data/train.txt")
+    df["pred"] = res
+    df["pred"] = df["pred"].map(mapfunc)
+    df["diff"] = df["tag"] != df["pred"]
+    df.to_csv("data/diff.csv", index=False)
+
+    # naive 的统计方式hhhhhhh
+    neg2pos_cnt = 0
+    pos2neg_cnt = 0
+    neu2pos_cnt = 0
+    neu2neg_cnt = 0
+    pos2neu_cnt = 0
+    neg2neu_cnt = 0
+    cnt = 0
+
+    for _, i in df.iterrows():
+        if i["pred"] == "negative" and i["tag"] == "positive":
+            pos2neg_cnt += 1
+            cnt += 1
+        elif i["pred"] == "positive" and i["tag"] == "negative":
+            neg2pos_cnt += 1
+            cnt += 1
+        elif i["pred"] == "neutral" and i["tag"] == "positive":
+            pos2neu_cnt += 1
+            cnt += 1
+        elif i["pred"] == "neutral" and i["tag"] == "negative":
+            neg2neu_cnt += 1
+            cnt += 1
+        elif i["pred"] == "positive" and i["tag"] == "neutral":
+            neu2pos_cnt += 1
+            cnt += 1
+        elif i["pred"] == "negative" and i["tag"] == "neutral":
+            neu2neg_cnt += 1
+            cnt += 1
+
+    print(neg2pos_cnt, pos2neg_cnt, neu2pos_cnt, neu2neg_cnt, pos2neu_cnt, neg2neu_cnt, 1- cnt / 4000)

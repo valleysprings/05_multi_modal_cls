@@ -82,8 +82,8 @@ def standard_txt_transform(tweet):
 def get_clip_feats(dloc, process_tweet=None):
     img_feats, txt_feats, txt_process = [], [], []
 
-    # model, img_preprocess = clip.load('ViT-B/32', device=device)
-    model, img_preprocess = clip.load('ViT-L/14', device=device)
+    model, img_preprocess = clip.load('ViT-B/16', device=device)
+    # model, img_preprocess = clip.load('ViT-L/14', device=device)
     model.eval()
 
     dataset = preDataset(dloc, img_transform=img_preprocess, txt_transform=process_tweet)
