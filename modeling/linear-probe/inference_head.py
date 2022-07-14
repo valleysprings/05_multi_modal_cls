@@ -42,7 +42,7 @@ def evaluate(hyper_dict, test_loader):
 
         for val_data in val_bar:
             val_images, val_text = val_data
-            outputs = net(val_text.to(device), val_text.to(device))
+            outputs = net(val_images.to(device), val_text.to(device))
             preds = torch.argmax(outputs.data, 1)
             all_preds.extend(preds.cpu().numpy().flatten())
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # 构建数据集与dataloader
     test_data = MVSA_DS(feats_img, feats_text)
-    test_loader = DataLoader(dataset=test_data, batch_size=args.bs, num_workers=2)
+    test_loader = DataLoader(dataset=test_data, batch_size=args.bs)
 
     # 推理开始
     res = evaluate(args, test_loader)
@@ -91,4 +91,4 @@ if __name__ == '__main__':
     df = pd.read_csv("data/test_without_label.txt")
     df["tag"] = res
     df["tag"] = df["tag"].map(mapfunc)
-    df.to_csv("data/answer.csv", index=False)
+    df.to_csv("data/answer.txt", index=False)

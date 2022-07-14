@@ -75,6 +75,7 @@ def standard_txt_transform(tweet):
 
 def get_bert_embeddings(dloc, process_tweet=None):
     txt_feats = []
+    fname = []
 
     tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
     model = RobertaModel.from_pretrained('roberta-base', output_hidden_states=True)
@@ -86,6 +87,7 @@ def get_bert_embeddings(dloc, process_tweet=None):
     for i, batch in enumerate(dt_loader):
         print("processing:\t %d / %d " % (i + 1, len(dt_loader)))
         txt_emb = batch[0]
+        fname.extend(batch[1])
         # txt_emb = torch.tensor([tokenizer.encode(txt_emb, add_special_tokens=True)]).to(device)
         txt_emb = tokenizer(txt_emb, return_tensors="pt").to(device)
 
@@ -95,15 +97,15 @@ def get_bert_embeddings(dloc, process_tweet=None):
             text_features = outputs.pooler_output
             txt_feats.extend(text_features.cpu().numpy().tolist())
 
-    return txt_feats
+    return txt_feats, fname
 
 if __name__ == '__main__':
     dloc = 'data/train.txt'
-    text_feats= get_bert_embeddings(dloc, standard_txt_transform)
-    json.dump({'txt_feats': text_feats},
+    text_feats, fname = get_bert_embeddings(dloc, standard_txt_transform)
+    json.dump({'txt_feats': text_feats, 'fname': fname},
               open('saved/saved_feats/roberta_train.json', 'w'))
 
     dloc = 'data/test_without_label.txt'
-    text_feats= get_bert_embeddings(dloc, standard_txt_transform)
-    json.dump({'txt_feats': text_feats},
+    text_feats, fname = get_bert_embeddings(dloc, standard_txt_transform)
+    json.dump({'txt_feats': text_feats, 'fname': fname},
               open('saved/saved_feats/roberta_test.json', 'w'))

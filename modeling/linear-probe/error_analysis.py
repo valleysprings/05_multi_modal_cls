@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from model_head import *
-from modeling import *
 
 # 检测是否使用nvidia的GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -43,7 +42,7 @@ def evaluate(hyper_dict, test_loader):
 
         for val_data in val_bar:
             val_images, val_text = val_data
-            outputs = net(val_text.to(device), val_text.to(device))
+            outputs = net(val_images.to(device), val_text.to(device))
             preds = torch.argmax(outputs.data, 1)
             all_preds.extend(preds.cpu().numpy().flatten())
 
@@ -69,11 +68,9 @@ if __name__ == '__main__':
     feats_text = json.load(open('saved/saved_feats/%s_train.json' % args.ttype, 'r'))
     feats_img = json.load(open('saved/saved_feats/%s_train.json' % args.vtype, 'r'))
 
-    if args.ttype == 'clip':
-        feats_text = feats_text['txt_feats']
 
-    if args.vtype == 'clip':
-        feats_img = feats_img['img_feats']
+    feats_text, labels = feats_text['txt_feats'], feats_text['tags']
+    feats_img = feats_img['img_feats']
 
     feats_text = np.array(feats_text)
     feats_img = np.array(feats_img)

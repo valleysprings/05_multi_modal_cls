@@ -61,6 +61,7 @@ class preDataset(Dataset):
         img = Image.open(os.path.join('data/pics_texts_pair', fname + '.jpg'))
         text = open(os.path.join('data/pics_texts_pair', fname + '.txt'), 'r', encoding='utf-8',
                     errors='ignore').read().strip()
+        tag = str(self.file_names.iloc[idx, 1])
 
         if self.img_transform:
             img = self.img_transform(img)
@@ -68,7 +69,7 @@ class preDataset(Dataset):
         if self.txt_transform:
             text = self.txt_transform(text)
 
-        return img, text
+        return img, text, tag
 
 
 def standard_txt_transform(tweet):
@@ -80,7 +81,7 @@ def standard_txt_transform(tweet):
 
 
 def get_clip_feats(dloc, process_tweet=None):
-    img_feats, txt_feats, txt_process = [], [], []
+    img_feats, txt_feats, tags = [], [], []
 
     model, img_preprocess = clip.load('ViT-B/16', device=device)
     # model, img_preprocess = clip.load('ViT-L/14', device=device)
@@ -91,8 +92,8 @@ def get_clip_feats(dloc, process_tweet=None):
 
     for i, batch in enumerate(dt_loader):
         print("processing:\t %d / %d " % (i + 1, len(dt_loader)))
-        img_emb, txt_emb = batch[0].to(device), batch[1]
-        txt_process.extend(txt_emb)
+        img_emb, txt_emb, tag = batch[0].to(device), batch[1], batch[2]
+        tags.append(str(tag[0]))
 
         txt_emb = clip.tokenize(txt_emb).to(device)
 
@@ -103,17 +104,17 @@ def get_clip_feats(dloc, process_tweet=None):
             img_feats.extend(image_features.cpu().numpy().tolist())
             txt_feats.extend(text_features.cpu().numpy().tolist())
 
-    return img_feats, txt_feats, txt_process
+    return img_feats, txt_feats, tags
 
 
 if __name__ == '__main__':
 
     dloc = 'data/train.txt'
-    img_feats, text_feats, txt_process = get_clip_feats(dloc, standard_txt_transform)
-    json.dump({'img_feats': img_feats, 'txt_process': txt_process, 'txt_feats': text_feats},
+    img_feats, text_feats, tags = get_clip_feats(dloc, standard_txt_transform)
+    json.dump({'img_feats': img_feats, 'txt_feats': text_feats, 'tags': tags},
               open('saved/saved_feats/clip_train.json', 'w'))
 
     dloc = 'data/test_without_label.txt'
-    img_feats, text_feats, txt_process = get_clip_feats(dloc, standard_txt_transform)
-    json.dump({'img_feats': img_feats, 'txt_process': txt_process, 'txt_feats': text_feats},
+    img_feats, text_feats, _ = get_clip_feats(dloc, standard_txt_transform)
+    json.dump({'img_feats': img_feats, 'txt_feats': text_feats},
               open('saved/saved_feats/clip_test.json', 'w'))
